@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<title>Conductor</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Conductor gives small and mid-sized businesses part-time senior AI leadership. Adopt AI safely, protect your data, and turn prototypes into production software.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+<style>
+/* Layout: one long score. Paper sections alternate with black "stage" bands; the five-line staff is the recurring motif. Tokens from the Conductor design system. */
+:root {
+  --paper: #F5F6F3; --surface: #FFFFFF; --surface-sunk: #EBEDE8;
+  --ink: #141615; --ink-muted: #4A504C; --ink-subtle: #646B66;
+  --line: #D6DAD4; --line-strong: #878D88;
+  --brass: #C08A2E; --brass-deep: #87590F; --brass-soft: #F3E7CF; --on-brass: #141615;
+  --stage: #111312; --stage-line: #2C302E; --stage-raised: #191C1A; --on-stage: #F5F6F3; --on-stage-muted: #A9AFAA;
+  --signal-info: #1D6A85; --signal-warn: #A14A12; --stage-warn: #E5925A; --focus-ring: #87590F;
+  --shadow-raised: 0 1px 2px rgba(20,22,21,.06), 0 12px 32px rgba(20,22,21,.08);
+  --shadow-nav: 0 1px 0 rgba(20,22,21,.08);
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --content-max: 1200px; --text-max: 680px;
+  --r-sm: 4px; --r-md: 6px; --r-lg: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1110; --surface: #171A18; --surface-sunk: #1D211F;
+  --ink: #EEF0EC; --ink-muted: #B3B9B4; --ink-subtle: #8F9691;
+  --line: #2B302D; --line-strong: #646B66;
+  --brass: #D6A44A; --brass-deep: #E0B566; --brass-soft: #3A2E17; --on-brass: #141615;
+  --stage: #050606; --stage-line: #262A28; --stage-raised: #121514; --on-stage: #EEF0EC; --on-stage-muted: #A9AFAA;
+  --signal-info: #6CB8D3; --signal-warn: #E5925A; --focus-ring: #E0B566;
+  --shadow-raised: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.45);
+  --shadow-nav: 0 1px 0 rgba(0,0,0,.6);
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --paper: #0F1110; --surface: #171A18; --surface-sunk: #1D211F;
+  --ink: #EEF0EC; --ink-muted: #B3B9B4; --ink-subtle: #8F9691;
+  --line: #2B302D; --line-strong: #646B66;
+  --brass: #D6A44A; --brass-deep: #E0B566; --brass-soft: #3A2E17; --on-brass: #141615;
+  --stage: #050606; --stage-line: #262A28; --stage-raised: #121514; --on-stage: #EEF0EC; --on-stage-muted: #A9AFAA;
+  --signal-info: #6CB8D3; --signal-warn: #E5925A; --focus-ring: #E0B566;
+  --shadow-raised: 0 1px 2px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.45);
+  --shadow-nav: 0 1px 0 rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 26px; -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--surface); }
+img { max-width: 100%; }
+a { color: inherit; }
+:where(a, button, summary, input, select, [tabindex]):focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.stage :where(a, button, summary, input, select):focus-visible { outline-color: var(--brass); }
+h1, h2, h3 { text-wrap: balance; }
+p { margin: 0; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Bands and wrapper */
+.band { padding-block: 96px; }
+.band-sunk { background: var(--surface-sunk); }
+.stage { background: var(--stage); color: var(--on-stage); border-block: 1px solid var(--stage-line); }
+.wrap { max-width: calc(var(--content-max) + 48px); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+@media (min-width: 720px) { .wrap { padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); } }
+@media (max-width: 640px) { .band { padding-block: 64px; } }
+
+/* Section heading anatomy */
+.eyebrow { font: 500 12px/16px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--brass-deep); }
+.stage .eyebrow { color: var(--on-stage-muted); }
+.head { max-width: var(--text-max); display: grid; gap: 8px; margin-bottom: 48px; }
+.head h2 { margin: 0; font: 500 48px/54px var(--font-display); letter-spacing: -.015em; }
+.head .intro { margin-top: 8px; font-size: 18px; line-height: 30px; color: var(--ink-muted); }
+.stage .head .intro { color: var(--on-stage-muted); }
+@media (max-width: 640px) { .head h2 { font-size: 36px; line-height: 42px; } }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 20px; border-radius: var(--r-sm); border: 1px solid transparent; font: 600 15px/20px var(--font-sans); text-decoration: none; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease; }
+.btn-lg { min-height: 52px; padding: 12px 28px; font-size: 16px; }
+.btn-primary { background: var(--brass); color: var(--on-brass); }
+.btn-primary:hover { background: var(--brass-deep); color: var(--paper); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover { border-color: var(--ink); }
+.btn-ghost { color: var(--brass-deep); padding-inline: 0; }
+.btn-ghost .arr { transition: transform .2s ease; }
+.btn-ghost:hover .arr { transform: translateX(4px); }
+.btn-stage { color: var(--on-stage); border-color: var(--on-stage-muted); background: transparent; }
+.btn-stage:hover { border-color: var(--on-stage); }
+
+/* Nav */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--surface); border-bottom: 1px solid var(--line); transition: box-shadow .2s ease; }
+.nav.scrolled { box-shadow: var(--shadow-nav); }
+.nav-inner { display: flex; align-items: center; gap: 32px; min-height: 72px; }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); font: 500 24px/1 var(--font-display); letter-spacing: -.01em; }
+.brand img { display: block; width: 36px; height: 36px; }
+.nav-links { display: flex; gap: 24px; margin-left: auto; }
+.nav-links a { color: var(--ink-muted); text-decoration: none; font: 500 15px/20px var(--font-sans); }
+.nav-links a:hover { color: var(--ink); }
+.menu-btn { display: none; margin-left: auto; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: var(--r-sm); background: transparent; color: var(--ink); cursor: pointer; }
+.menu-btn span { display: block; width: 18px; height: 1.5px; margin: 4px auto; background: currentColor; }
+.mobile-menu { border-top: 1px solid var(--line); padding-block: 8px 16px; display: grid; }
+.mobile-menu a { padding: 12px 0; text-decoration: none; color: var(--ink); font-weight: 500; border-bottom: 1px solid var(--line); }
+.mobile-menu .btn { margin-top: 16px; }
+@media (max-width: 960px) { .nav-links, .nav-inner > .btn { display: none; } .menu-btn { display: block; } }
+@media (max-width: 640px) { .nav-inner { min-height: 64px; } }
+
+/* Hero */
+.hero { position: relative; overflow: hidden; padding-block: 88px 96px; }
+.hero-staff { position: absolute; left: 0; right: 0; top: 50%; height: 34px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+.hero-staff span { display: block; height: 1px; background: var(--line); transform-origin: left center; animation: draw 1.6s cubic-bezier(.2,.7,.2,1) both; }
+.hero-staff span:nth-child(2) { animation-delay: .08s; } .hero-staff span:nth-child(3) { animation-delay: .16s; } .hero-staff span:nth-child(4) { animation-delay: .24s; } .hero-staff span:nth-child(5) { animation-delay: .32s; }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.hero-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.hero-copy { display: grid; gap: 20px; min-width: 0; }
+.hero h1 { margin: 0; font: 500 68px/70px var(--font-display); letter-spacing: -.025em; }
+.hero h1 em { font-style: italic; color: var(--brass-deep); }
+.hero .sub { font-size: 19px; line-height: 31px; color: var(--ink-muted); max-width: 34em; }
+.hero-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; margin-top: 8px; }
+.trust { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 400 13px/18px var(--font-mono); color: var(--ink-subtle); margin-top: 8px; }
+.trust span { display: inline-flex; align-items: center; gap: 8px; }
+.trust span::before { content: ""; width: 6px; height: 6px; background: var(--brass); }
+.rise { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+.rise.d1 { animation-delay: .1s; } .rise.d2 { animation-delay: .2s; } .rise.d3 { animation-delay: .3s; } .rise.d4 { animation-delay: .45s; }
+@keyframes rise { from { transform: translateY(14px); } to { transform: none; } }
+@media (max-width: 1120px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; } .hero-staff { top: auto; bottom: 48px; } .guard { max-width: 640px; } }
+@media (max-width: 640px) { .hero { padding-block: 56px 64px; } .hero h1 { font-size: 44px; line-height: 48px; } .hero .sub { font-size: 17px; line-height: 28px; } }
+
+/* Guardrail demo card */
+.guard { position: relative; background: var(--stage); color: var(--on-stage); border: 1px solid var(--stage-line); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow-raised); display: grid; gap: 20px; min-width: 0; }
+.guard-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font: 500 12px/16px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--on-stage-muted); }
+.live { display: inline-flex; align-items: center; gap: 8px; }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--brass); animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.lanes { position: relative; display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 12px; }
+.lanes::before { content: ""; position: absolute; left: 8%; right: 8%; top: 50%; height: 1px; background: var(--stage-line); }
+.lane { position: relative; z-index: 1; background: var(--stage-raised); border: 1px solid var(--stage-line); border-radius: var(--r-md); padding: 12px; min-width: 0; }
+.lane-mid { border-color: var(--brass); }
+.lane h3 { margin: 0 0 8px; font: 600 14px/18px var(--font-sans); color: var(--on-stage); }
+.lane-mid h3 { color: var(--brass); }
+.lane ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font: 400 12px/17px var(--font-mono); color: var(--on-stage-muted); }
+.lane-mid li { display: flex; gap: 8px; align-items: baseline; transition: color .25s ease; }
+.lane-mid li::before { content: ""; flex: none; width: 8px; height: 8px; border: 1px solid var(--stage-line); transform: translateY(1px); transition: background-color .25s ease, border-color .25s ease; }
+.lane-mid li.on { color: var(--on-stage); }
+.lane-mid li.on::before { background: var(--brass); border-color: var(--brass); }
+.packet { position: absolute; z-index: 2; top: calc(50% - 5px); left: 6%; width: 10px; height: 10px; background: var(--brass); opacity: 0; }
+.packet.go { animation: travel 3.2s cubic-bezier(.45,0,.2,1) forwards; }
+@keyframes travel { 0% { left: 6%; opacity: 0; } 8% { opacity: 1; } 38% { left: 46%; } 62% { left: 46%; } 92% { left: 90%; opacity: 1; } 100% { left: 92%; opacity: 0; } }
+.records { display: grid; gap: 12px; }
+.rec { display: grid; gap: 6px; }
+.rec-label { font: 500 11px/14px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--on-stage-muted); }
+.rec-text { position: relative; padding: 12px 14px; border: 1px solid var(--stage-line); border-radius: var(--r-sm); font: 400 14px/22px var(--font-mono); color: var(--on-stage); min-height: 48px; overflow-wrap: anywhere; }
+.rec-text mark { background: transparent; color: var(--on-stage); border-bottom: 1px dashed var(--brass); }
+.rec-text .red { display: inline-block; padding: 0 4px; background: var(--brass); color: var(--on-brass); border-radius: 2px; font-size: 12px; line-height: 18px; }
+.rec-out .rec-text { border-color: var(--brass); }
+.rec-out .rec-text::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--brass); opacity: 0; }
+.rec-out.scan .rec-text::after { animation: scan .9s ease-in-out; }
+@keyframes scan { 0% { left: 0; opacity: 1; } 100% { left: calc(100% - 2px); opacity: 0; } }
+.guard-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 400 12px/16px var(--font-mono); color: var(--on-stage-muted); border-top: 1px solid var(--stage-line); padding-top: 14px; }
+.guard-foot b { color: var(--on-stage); font-weight: 500; }
+@media (max-width: 560px) { .lanes { grid-template-columns: 1fr; } .lanes::before, .packet { display: none; } }
+
+/* Straight talk */
+.straight { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 64px; align-items: start; }
+.straight blockquote { margin: 0; font: italic 400 40px/48px var(--font-display); letter-spacing: -.01em; color: var(--ink); }
+.straight blockquote span { color: var(--brass-deep); }
+.straight .sig { margin-top: 20px; font: 400 13px/18px var(--font-mono); color: var(--ink-subtle); }
+.promises { display: grid; gap: 0; border-top: 1px solid var(--ink); }
+.promise { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 24px; padding-block: 24px; border-bottom: 1px solid var(--line); }
+.promise h3 { margin: 0; font: 600 18px/26px var(--font-sans); }
+.promise p { color: var(--ink-muted); }
+@media (max-width: 900px) { .straight { grid-template-columns: minmax(0, 1fr); gap: 40px; } .straight blockquote { font-size: 32px; line-height: 40px; } }
+@media (max-width: 560px) { .promise { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+
+/* Staff divider */
+.staff { display: flex; align-items: center; gap: 16px; }
+.staff-lines { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.staff-lines span { height: 1px; background: var(--line); }
+.staff-label { font: 500 12px/16px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-subtle); }
+
+/* Cards */
+.grid { display: grid; gap: 24px; }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .g4, .g3, .g2 { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 24px; display: flex; flex-direction: column; gap: 12px; min-width: 0; transition: border-color .2s ease, transform .2s ease; }
+.card:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+.card h3 { margin: 0; font: 600 20px/28px var(--font-sans); }
+.card .sum { color: var(--ink-muted); }
+.kicker { font: 400 13px/18px var(--font-mono); color: var(--ink-subtle); }
+.list { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 15px; line-height: 22px; }
+.list li { position: relative; padding-left: 20px; }
+.list li::before { content: ""; position: absolute; left: 0; top: 10px; width: 10px; height: 1px; background: var(--ink-subtle); }
+.closing { margin-top: 40px; font: italic 400 26px/34px var(--font-display); color: var(--ink); max-width: 36em; }
+
+/* Comparison table */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 15px; line-height: 22px; }
+th, td { text-align: left; padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { background: var(--surface-sunk); font: 500 12px/16px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-muted); }
+tbody th { font-weight: 600; color: var(--ink); width: 22%; }
+td { color: var(--ink-muted); }
+.col-us { background: var(--brass-soft); color: var(--ink); font-weight: 600; }
+thead .col-us { color: var(--brass-deep); background: var(--brass-soft); }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+.footnote { margin-top: 12px; font-size: 13px; line-height: 20px; color: var(--ink-subtle); }
+
+/* Data section */
+.data-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.compare { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); overflow: hidden; }
+.compare-tabs { display: flex; border-bottom: 1px solid var(--line); }
+.compare-tabs button { flex: 1; min-height: 48px; border: 0; background: transparent; font: 500 12px/16px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-subtle); cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s ease, border-color .2s ease; }
+.compare-tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brass); }
+.compare-body { padding: 24px; display: grid; gap: 14px; font: 400 14px/22px var(--font-mono); }
+.field { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
+.field:last-child { border-bottom: 0; padding-bottom: 0; }
+.field dt { color: var(--ink-subtle); }
+.field dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.val { transition: opacity .25s ease; }
+.val .red { display: inline-block; padding: 0 5px; border-radius: 2px; background: var(--brass); color: var(--on-brass); font-size: 12px; line-height: 20px; }
+.val .keep { border-bottom: 1px solid var(--signal-info); }
+.compare-note { padding: 14px 24px; background: var(--surface-sunk); font-size: 13px; line-height: 20px; color: var(--ink-muted); }
+.principles { display: grid; gap: 0; counter-reset: p; border-top: 1px solid var(--line); }
+.principle { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 16px; padding-block: 18px; border-bottom: 1px solid var(--line); }
+.principle svg { width: 22px; height: 22px; stroke: var(--brass-deep); fill: none; stroke-width: 1.5; margin-top: 2px; }
+.principle h3 { margin: 0; font: 600 17px/24px var(--font-sans); }
+.principle p { color: var(--ink-muted); font-size: 15px; line-height: 24px; }
+.data-foot { margin-top: 28px; display: grid; gap: 16px; }
+.data-foot p { font-size: 15px; line-height: 24px; color: var(--ink-muted); }
+@media (max-width: 900px) { .data-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Orchestrator */
+.orch-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.switch { display: inline-flex; padding: 4px; border: 1px solid var(--stage-line); border-radius: var(--r-sm); gap: 4px; margin-bottom: 16px; }
+.switch button { min-height: 40px; padding: 8px 16px; border: 0; border-radius: 2px; background: transparent; color: var(--on-stage-muted); font: 600 14px/20px var(--font-sans); cursor: pointer; transition: background-color .2s ease, color .2s ease; }
+.switch button[aria-pressed="true"] { background: var(--on-stage); color: var(--stage); }
+.flips { list-style: none; margin: 0; padding: 0; border: 1px solid var(--stage-line); border-radius: var(--r-md); }
+.flip { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--stage-line); min-height: 58px; }
+.flip:last-child { border-bottom: 0; }
+.flip .mark { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--signal-warn); position: relative; transition: border-color .3s ease, background-color .3s ease; }
+.flip .mark::before, .flip .mark::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 1.5px; background: var(--signal-warn); transform: translate(-50%, -50%) rotate(45deg); transition: all .3s ease; }
+.flip .mark::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.flip .txt { position: relative; min-height: 24px; }
+.flip .txt span { display: block; transition: opacity .3s ease, transform .3s ease; }
+.flip .after { position: absolute; inset: 0; opacity: 0; transform: translateY(8px); color: var(--on-stage); }
+.flip .before { color: var(--on-stage-muted); }
+.flips.fixed .flip .mark { border-color: var(--brass); background: var(--brass); }
+.flips.fixed .flip .mark::before { width: 5px; background: var(--on-brass); transform: translate(-80%, 0) rotate(45deg); }
+.flips.fixed .flip .mark::after { width: 9px; background: var(--on-brass); transform: translate(-30%, -1px) rotate(-50deg); }
+.flips.fixed .flip .before { opacity: 0; transform: translateY(-8px); }
+.flips.fixed .flip .after { opacity: 1; transform: none; }
+.flips.fixed .flip:nth-child(2) * { transition-delay: .06s; } .flips.fixed .flip:nth-child(3) * { transition-delay: .12s; } .flips.fixed .flip:nth-child(4) * { transition-delay: .18s; } .flips.fixed .flip:nth-child(5) * { transition-delay: .24s; } .flips.fixed .flip:nth-child(6) * { transition-delay: .3s; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; padding-block: 18px; border-top: 1px solid var(--stage-line); }
+.step:last-child { border-bottom: 1px solid var(--stage-line); }
+.step .n { font: italic 400 30px/30px var(--font-display); color: var(--brass); }
+.step h3 { margin: 0; font: 600 17px/24px var(--font-sans); color: var(--on-stage); }
+.step p { color: var(--on-stage-muted); font-size: 15px; line-height: 24px; }
+.orch-cta { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 900px) { .orch-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Movements */
+.movements { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.movement { display: grid; gap: 16px; align-content: start; padding-top: 24px; border-top: 1px solid var(--ink); min-width: 0; position: relative; }
+.movement::before { content: ""; position: absolute; left: 0; top: -1px; height: 3px; width: 0; background: var(--brass); transition: width .5s cubic-bezier(.2,.7,.2,1); }
+.movement:hover::before { width: 100%; }
+.mv-head { display: flex; align-items: baseline; gap: 16px; }
+.numeral { font: italic 400 48px/48px var(--font-display); color: var(--brass-deep); min-width: 56px; }
+.mv-head h3 { margin: 0; font: 600 22px/28px var(--font-sans); }
+.mv-time { font: 400 13px/18px var(--font-mono); color: var(--ink-subtle); }
+.movement > p { color: var(--ink-muted); }
+.deliver { padding: 12px 16px; background: var(--surface-sunk); border-radius: var(--r-sm); font-size: 15px; line-height: 22px; }
+.band-sunk .deliver { background: var(--surface); }
+@media (max-width: 900px) { .movements { grid-template-columns: minmax(0, 1fr); } }
+
+/* Use cases tabs */
+.uc { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; }
+.uc-tabs { display: grid; gap: 2px; align-content: start; border-left: 1px solid var(--line); }
+.uc-tabs button { text-align: left; min-height: 48px; padding: 12px 16px; border: 0; border-left: 2px solid transparent; margin-left: -1px; background: transparent; color: var(--ink-muted); font: 500 16px/22px var(--font-sans); cursor: pointer; transition: color .2s ease, border-color .2s ease, background-color .2s ease; }
+.uc-tabs button:hover { color: var(--ink); }
+.uc-tabs button[aria-selected="true"] { color: var(--ink); border-left-color: var(--brass); background: var(--surface); }
+.uc-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 32px; min-width: 0; }
+.uc-panel h3 { margin: 0 0 8px; font: 500 28px/34px var(--font-display); }
+.uc-panel > p { color: var(--ink-muted); max-width: 40em; }
+.uc-items { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.uc-items li { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+.uc-items b { font-weight: 600; }
+.uc-items span { color: var(--ink-muted); font-size: 15px; line-height: 23px; }
+.uc-panel.enter { animation: fadeUp .35s ease both; }
+@keyframes fadeUp { from { transform: translateY(6px); opacity: .4; } to { transform: none; opacity: 1; } }
+.chips { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); font: 400 13px/18px var(--font-mono); color: var(--ink-muted); background: var(--surface); }
+@media (max-width: 900px) { .uc { grid-template-columns: minmax(0, 1fr); } .uc-tabs { display: flex; overflow-x: auto; border-left: 0; border-bottom: 1px solid var(--line); } .uc-tabs button { flex: none; border-left: 0; border-bottom: 2px solid transparent; margin: 0 0 -1px; } .uc-tabs button[aria-selected="true"] { border-bottom-color: var(--brass); background: transparent; } .uc-items { grid-template-columns: minmax(0, 1fr); } }
+
+/* Pricing */
+.tier { padding: 32px 24px; gap: 8px; }
+.tier.featured { border-top: 3px solid var(--brass); box-shadow: var(--shadow-raised); }
+.badge { align-self: flex-start; padding: 2px 8px; border-radius: var(--r-sm); background: var(--brass-soft); color: var(--brass-deep); font: 500 12px/16px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.price { margin: 12px 0 4px; font: 500 30px/36px var(--font-display); }
+.tier .list { margin-bottom: 24px; }
+.tier .list li::before { top: 6px; width: 8px; height: 4px; background: none; border-left: 1.5px solid var(--signal-info); border-bottom: 1.5px solid var(--signal-info); transform: rotate(-45deg); }
+.tier .btn { margin-top: auto; }
+.tier.featured:hover { transform: translateY(-2px); }
+.price-note { margin-top: 24px; font-size: 15px; color: var(--ink-muted); }
+
+/* FAQ */
+.faq-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 64px; }
+.faq-wrap .head { margin-bottom: 0; align-self: start; }
+.faq { border-bottom: 1px solid var(--line); }
+.faq:first-child { border-top: 1px solid var(--line); }
+.faq summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 22px; cursor: pointer; font: 600 18px/26px var(--font-sans); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary:hover { color: var(--brass-deep); }
+.pm { position: relative; flex: none; width: 14px; height: 14px; }
+.pm::before, .pm::after { content: ""; position: absolute; left: 0; top: 6px; width: 14px; height: 1.5px; background: currentColor; transition: transform .25s ease; }
+.pm::after { transform: rotate(90deg); }
+.faq[open] .pm::after { transform: rotate(0); }
+.faq-body { padding-bottom: 22px; color: var(--ink-muted); max-width: var(--text-max); }
+.faq[open] .faq-body { animation: fadeUp .3s ease both; }
+@media (max-width: 900px) { .faq-wrap { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
+
+/* Final CTA + form */
+.cta-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; align-items: start; }
+.cta-grid h2 { margin: 0; font: 500 52px/58px var(--font-display); letter-spacing: -.015em; }
+.cta-grid .intro { margin-top: 16px; font-size: 18px; line-height: 30px; color: var(--on-stage-muted); }
+.cta-note { margin-top: 20px; font-size: 14px; color: var(--on-stage-muted); }
+.form { background: var(--stage-raised); border: 1px solid var(--stage-line); border-radius: var(--r-lg); padding: 28px; display: grid; gap: 16px; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.fld { display: grid; gap: 6px; }
+.fld label, .fld legend { font: 600 14px/20px var(--font-sans); color: var(--on-stage); padding: 0; }
+.fld input, .fld select { min-height: 44px; padding: 10px 12px; border: 1px solid var(--on-stage-muted); border-radius: var(--r-sm); background: var(--stage); color: var(--on-stage); font: 400 15px/20px var(--font-sans); width: 100%; }
+.fld input::placeholder { color: var(--on-stage-muted); }
+fieldset.fld { border: 0; margin: 0; padding: 0; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.checks label { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--stage-line); border-radius: var(--r-sm); font: 400 14px/18px var(--font-sans); color: var(--on-stage-muted); cursor: pointer; transition: border-color .2s ease, color .2s ease; }
+.checks input { accent-color: var(--brass); margin: 0; }
+.checks label:has(input:checked) { border-color: var(--brass); color: var(--on-stage); }
+.form .btn { width: 100%; }
+.form-msg { font-size: 14px; line-height: 21px; color: var(--on-stage); padding: 12px 14px; border: 1px solid var(--brass); border-radius: var(--r-sm); }
+.form-err { color: var(--signal-warn); font-size: 13px; }
+.stage .form-err { color: var(--stage-warn); }
+@media (max-width: 900px) { .cta-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; } .cta-grid h2 { font-size: 38px; line-height: 44px; } }
+@media (max-width: 520px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Footer */
+.footer { background: var(--stage); color: var(--on-stage-muted); padding-block: 56px 40px; border-top: 1px solid var(--stage-line); }
+.foot-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 32px; }
+.footer .brand { color: var(--on-stage); }
+.footer .brand img { outline: 1px solid var(--stage-line); }
+.footer h3 { margin: 0 0 12px; font: 500 12px/16px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--on-stage-muted); }
+.footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 15px; }
+.footer a { color: var(--on-stage); text-decoration: none; }
+.footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.foot-tag { margin-top: 16px; max-width: 26em; font-size: 15px; line-height: 24px; }
+.foot-legal { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--stage-line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; }
+@media (max-width: 800px) { .foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .foot-grid > :first-child { grid-column: 1 / -1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<header class="nav" id="top">
+  <div class="wrap">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="Conductor home"><img src="conductor-logo-inverse.svg" alt="" width="36" height="36"><span>Conductor</span></a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#services">Services</a>
+        <a href="#data">Data Safety</a>
+        <a href="#orchestrator">The Orchestrator</a>
+        <a href="#how">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary" href="#book">Book a call</a>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span><span></span><span class="sr">Menu</span></button>
+    </div>
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile" hidden>
+      <a href="#services">Services</a>
+      <a href="#data">Data Safety</a>
+      <a href="#orchestrator">The Orchestrator</a>
+      <a href="#how">How It Works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="#book">Book a call</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-staff" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow rise">Fractional AI leadership for growing businesses</p>
+        <h1 class="rise d1">Your fractional <em>AI department.</em></h1>
+        <p class="sub rise d2">Conductor gives small and mid-sized businesses senior AI leadership on a part-time basis. We find where AI pays off, protect your data while you use it, and turn quick experiments into software you can trust.</p>
+        <div class="hero-ctas rise d3">
+          <a class="btn btn-primary btn-lg" href="#book">Book a free AI readiness call</a>
+          <a class="btn btn-ghost" href="#how">See how it works <span class="arr" aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="trust rise d4"><span>No long-term contracts</span><span>Your data never trains public models</span><span>Built for teams of 10&ndash;250</span></div>
+      </div>
+
+      <figure class="guard rise d2" aria-label="Example: how Conductor's guardrail layer removes sensitive details before a request reaches an AI model">
+        <div class="guard-top"><span>Guardrail layer &middot; example</span><span class="live">Running</span></div>
+        <div class="lanes">
+          <div class="lane"><h3>Your systems</h3><ul><li>CRM</li><li>Email</li><li>Accounting</li><li>Files</li></ul></div>
+          <div class="lane lane-mid"><h3>Conductor guardrails</h3><ul id="checks"><li>Classify the data</li><li>Redact personal details</li><li>Check access rules</li><li>Log the request</li></ul></div>
+          <div class="lane"><h3>AI model</h3><ul><li>Sees the minimum</li><li>De-identified</li><li>Never trains on it</li></ul></div>
+          <div class="packet" id="packet" aria-hidden="true"></div>
+        </div>
+        <div class="records">
+          <div class="rec"><span class="rec-label">What your team sent</span><div class="rec-text" id="recIn"></div></div>
+          <div class="rec rec-out" id="recOutWrap"><span class="rec-label">What the AI model saw</span><div class="rec-text" id="recOut"></div></div>
+        </div>
+        <figcaption class="guard-foot"><span id="recTask">Task: draft a reply</span><span><b id="recCount">3</b> sensitive details kept private</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- Straight talk -->
+<section class="band band-sunk" aria-labelledby="straight-h">
+  <div class="wrap">
+    <div class="straight">
+      <div>
+        <p class="eyebrow">Straight talk</p>
+        <h2 class="sr" id="straight-h">How we work</h2>
+        <blockquote style="margin-top:16px">Sometimes the right amount of AI is <span>less than you were sold.</span></blockquote>
+        <p class="sig">The Conductor approach</p>
+      </div>
+      <div class="promises">
+        <div class="promise"><h3>We'll tell you "not yet."</h3><p>If a process works fine without AI, we'll say so. Some of our best advice will be the projects we talk you out of.</p></div>
+        <div class="promise"><h3>We're vendor-neutral.</h3><p>We recommend what fits your business, including tools you already pay for. You don't need a new platform to get started.</p></div>
+        <div class="promise"><h3>Every project earns its keep.</h3><p>Each recommendation comes with the hours it saves, the revenue it adds, or the risk it removes. If we can't name it, we don't build it.</p></div>
+        <div class="promise"><h3>Your data stays yours.</h3><p>AI tools see only what a task needs. Accounts, keys and data stay in your name.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Problem -->
+<section class="band" aria-labelledby="problem-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Sound familiar?</p>
+      <h2 id="problem-h">AI is already in your business. Is anyone in charge of it?</h2>
+    </div>
+    <div class="grid g4">
+      <article class="card"><p class="kicker">Shadow AI</p><h3>Data in free chatbots</h3><p class="sum">Your team is pasting customer emails, contracts and financials into free chatbots, and no one knows what's been shared.</p></article>
+      <article class="card"><p class="kicker">The weekend app</p><h3>A tool only one person understands</h3><p class="sum">Someone vibe-coded an app that now runs quoting or scheduling. It works until it doesn't.</p></article>
+      <article class="card"><p class="kicker">Vendor noise</p><h3>"AI-powered" everything</h3><p class="sum">Every software rep now sells AI features. You can't tell what's useful and what's a price increase.</p></article>
+      <article class="card"><p class="kicker">No plan, no owner</p><h3>No roadmap, no policy</h3><p class="sum">You know AI matters, but you can't justify a $250K full-time hire to figure it out.</p></article>
+    </div>
+    <p class="closing">You don't need an AI department. You need someone to lead one, a few hours a week.</p>
+  </div>
+</section>
+
+<!-- Fractional model -->
+<section class="band band-sunk" aria-labelledby="model-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">The fractional model</p>
+      <h2 id="model-h">Senior AI leadership, without the full-time salary.</h2>
+      <p class="intro">Growing businesses have hired fractional CFOs for years: an experienced executive who joins part-time, sets strategy and puts controls in place. Conductor does the same for AI.</p>
+    </div>
+    <div class="table-scroll" tabindex="0" aria-label="Comparison table, scrolls sideways on small screens">
+      <table>
+        <thead><tr><th scope="col"><span class="sr">Compare</span></th><th scope="col">Full-time AI hire</th><th scope="col">Typical agency or vendor</th><th scope="col" class="col-us">Conductor</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Cost</th><td>$180K&ndash;$300K a year plus benefits</td><td>Project fees plus upsells</td><td class="col-us">Predictable monthly retainer</td></tr>
+          <tr><th scope="row">Time to start</th><td>3&ndash;6 months to recruit</td><td>Weeks</td><td class="col-us">First call this week</td></tr>
+          <tr><th scope="row">Neutral on tools</th><td>Varies</td><td>Sells their own product</td><td class="col-us">Vendor-neutral</td></tr>
+          <tr><th scope="row">Data protection</th><td>Depends on the hire</td><td>Often an afterthought</td><td class="col-us">Built into every engagement</td></tr>
+          <tr><th scope="row">Strategy and delivery</th><td>Usually one or the other</td><td>Delivery only</td><td class="col-us">Both, plus the Orchestrator</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote">Salary range is a rough US market estimate for senior AI roles.</p>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="band" id="services" aria-labelledby="services-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Services</p>
+      <h2 id="services-h">Everything you'd expect from an AI lead, sized for your business.</h2>
+    </div>
+    <div class="grid g3">
+      <article class="card"><h3>AI Strategy and Roadmap</h3><p class="sum">Find the handful of AI projects worth doing first.</p><ul class="list"><li>Process and opportunity audit</li><li>Prioritized roadmap with expected return</li><li>Quarterly reviews with leadership</li></ul></article>
+      <article class="card"><h3>Data Guardrails</h3><p class="sum">Decide what AI can see, and enforce it.</p><ul class="list"><li>Data classification</li><li>Redaction between your systems and AI tools</li><li>Vendor data-handling reviews</li></ul></article>
+      <article class="card"><h3>Tool Selection and Rollout</h3><p class="sum">Pick the right tools and get your team using them.</p><ul class="list"><li>Vendor-neutral evaluations</li><li>Approved-tools list and account setup</li><li>Integration with systems you already use</li></ul></article>
+      <article class="card"><h3>Prototype to Production</h3><p class="sum">Turn vibe-coded apps into reliable, supported software with the Orchestrator.</p><ul class="list"><li>Code, security and data review</li><li>Logins, database, backups, hosting</li><li>Documentation and handoff</li></ul></article>
+      <article class="card"><h3>AI Policy and Training</h3><p class="sum">Give your people clear rules and real skills.</p><ul class="list"><li>Written acceptable-use policy</li><li>Role-based training sessions</li><li>Prompt libraries for common tasks</li></ul></article>
+      <article class="card"><h3>Ongoing Oversight</h3><p class="sum">Someone keeps watch after launch.</p><ul class="list"><li>Usage and cost monitoring</li><li>Model and vendor change tracking</li><li>Monthly check-ins with your advisor</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<!-- Data -->
+<section class="band band-sunk" id="data" aria-labelledby="data-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Data protection</p>
+      <h2 id="data-h">Your data stays yours.</h2>
+      <p class="intro">Most AI risk for small businesses comes from what gets shared, not from the AI itself. We put a layer between your business data and every AI tool you use, so models see only what a task needs.</p>
+    </div>
+    <div class="data-grid">
+      <div>
+        <div class="compare">
+          <div class="compare-tabs" role="tablist" aria-label="Compare the record before and after the guardrail layer">
+            <button role="tab" id="tabRaw" aria-selected="false" aria-controls="cmpBody">Your record</button>
+            <button role="tab" id="tabSafe" aria-selected="true" aria-controls="cmpBody">What AI receives</button>
+          </div>
+          <dl class="compare-body" id="cmpBody" role="tabpanel" aria-live="polite">
+            <div class="field"><dt>Customer</dt><dd class="val" data-raw="Dana Whitfield" data-safe='<span class="red">CUSTOMER_1</span>'></dd></div>
+            <div class="field"><dt>Email</dt><dd class="val" data-raw="dana.whitfield@example.com" data-safe='<span class="red">EMAIL_1</span>'></dd></div>
+            <div class="field"><dt>Account</dt><dd class="val" data-raw="ACCT-4417-2290" data-safe='<span class="red">REDACTED</span>'></dd></div>
+            <div class="field"><dt>Invoice</dt><dd class="val" data-raw="$1,240.00, 45 days overdue" data-safe='<span class="keep">$1,240.00, 45 days overdue</span>'></dd></div>
+            <div class="field"><dt>Request</dt><dd class="val" data-raw="Draft a friendly payment reminder" data-safe='<span class="keep">Draft a friendly payment reminder</span>'></dd></div>
+          </dl>
+          <p class="compare-note">Example record. The AI writes the reminder from the parts it needs; Conductor puts the real name and email back in before it reaches your inbox.</p>
+        </div>
+      </div>
+      <div>
+        <div class="principles">
+          <div class="principle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><div><h3>Least data, always</h3><p>AI gets only the fields a task requires.</p></div></div>
+          <div class="principle"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="9" width="18" height="6" rx="1"/><path d="M7 12h10"/></svg><div><h3>Redact before it leaves</h3><p>Names, account numbers and personal details are masked automatically.</p></div></div>
+          <div class="principle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.2-3 7.6-7 9-4-1.4-7-4.8-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg><div><h3>No training on your data</h3><p>We only approve tools and plans that contractually exclude your data from model training.</p></div></div>
+          <div class="principle"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg><div><h3>You hold the keys</h3><p>Accounts, API keys and data stay in your name and under your control.</p></div></div>
+          <div class="principle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><div><h3>Everything is logged</h3><p>You can see what was sent, by whom, and when.</p></div></div>
+        </div>
+        <div class="data-foot">
+          <p>Working in a regulated field such as healthcare, finance or legal? We design around your compliance requirements from day one.</p>
+          <div><a class="btn btn-secondary" href="#book">Get a free data-risk check</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Orchestrator -->
+<section class="band stage" id="orchestrator" aria-labelledby="orch-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">The Orchestrator</p>
+      <h2 id="orch-h">From weekend prototype to software you can run a business on.</h2>
+      <p class="intro">AI tools now let anyone build an app in an afternoon. Those apps usually skip the parts that matter in production: security, logins, backups, testing and support. The Orchestrator is our method and platform for turning them into complete, maintainable solutions without starting over.</p>
+    </div>
+    <div class="orch-grid">
+      <div>
+        <div class="switch" role="group" aria-label="Show the app before or after the Orchestrator">
+          <button id="swBefore" aria-pressed="true">Vibe-coded prototype</button>
+          <button id="swAfter" aria-pressed="false">After the Orchestrator</button>
+        </div>
+        <ul class="flips" id="flips">
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">Runs on one person's laptop or a free account</span><span class="after">Hosted on reliable infrastructure you own</span></span></li>
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">Passwords and keys sitting in the code</span><span class="after">Secrets stored securely, with proper logins and roles</span></span></li>
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">No backups</span><span class="after">Automatic backups and recovery</span></span></li>
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">Breaks when the AI tool changes</span><span class="after">Tested, versioned and monitored</span></span></li>
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">Only the builder understands it</span><span class="after">Documented and supported</span></span></li>
+          <li class="flip"><span class="mark" aria-hidden="true"></span><span class="txt"><span class="before">Sends whole customer records to AI</span><span class="after">Routed through Conductor's data guardrails</span></span></li>
+        </ul>
+      </div>
+      <div>
+        <ol class="steps" aria-label="The Orchestrator process">
+          <li class="step"><span class="n" aria-hidden="true">1</span><div><h3>Intake</h3><p>You show us the app and what it's for.</p></div></li>
+          <li class="step"><span class="n" aria-hidden="true">2</span><div><h3>Assess</h3><p>We review the code, data flows and security gaps, and tell you plainly whether it's worth keeping.</p></div></li>
+          <li class="step"><span class="n" aria-hidden="true">3</span><div><h3>Harden</h3><p>We rebuild the weak parts on a production foundation.</p></div></li>
+          <li class="step"><span class="n" aria-hidden="true">4</span><div><h3>Connect</h3><p>We integrate it with your existing systems and the guardrail layer.</p></div></li>
+          <li class="step"><span class="n" aria-hidden="true">5</span><div><h3>Run</h3><p>Monitoring, updates and support, so it keeps working.</p></div></li>
+        </ol>
+        <div class="orch-cta"><a class="btn btn-primary" href="#book">Bring us your prototype</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Movements -->
+<section class="band" id="how" aria-labelledby="how-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">How an engagement works</p>
+      <h2 id="how-h">Three movements, from first call to running smoothly.</h2>
+      <p class="intro">Each movement ends with something you keep. You can stop after any of them.</p>
+    </div>
+    <div class="movements">
+      <article class="movement">
+        <div class="mv-head"><span class="numeral" aria-hidden="true">I</span><div><h3><span class="sr">Movement one: </span>Assess</h3><p class="mv-time">About 2 weeks</p></div></div>
+        <p>We interview your team, map your processes, review the tools already in use, and find where your data is exposed.</p>
+        <p class="deliver"><strong>You get:</strong> an AI Readiness Report with your top opportunities and risks.</p>
+      </article>
+      <article class="movement">
+        <div class="mv-head"><span class="numeral" aria-hidden="true">II</span><div><h3><span class="sr">Movement two: </span>Arrange</h3><p class="mv-time">About 2&ndash;4 weeks</p></div></div>
+        <p>We build your roadmap, put data guardrails and an AI policy in place, and pick the first two or three projects.</p>
+        <p class="deliver"><strong>You get:</strong> a 90-day plan, an approved-tools list and a written AI policy.</p>
+      </article>
+      <article class="movement">
+        <div class="mv-head"><span class="numeral" aria-hidden="true">III</span><div><h3><span class="sr">Movement three: </span>Conduct</h3><p class="mv-time">Ongoing, month to month</p></div></div>
+        <p>We lead delivery: rolling out tools, training staff, running Orchestrator builds, and reporting results to leadership each month.</p>
+        <p class="deliver"><strong>You get:</strong> a fractional AI lead, measurable results and a monthly scorecard.</p>
+      </article>
+    </div>
+    <div style="margin-top:40px"><a class="btn btn-secondary" href="#book">Start with Movement I</a></div>
+  </div>
+</section>
+
+<!-- Use cases -->
+<section class="band band-sunk" aria-labelledby="uc-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Where AI helps</p>
+      <h2 id="uc-h">Practical AI, in the places that eat your week.</h2>
+    </div>
+    <div class="uc">
+      <div class="uc-tabs" role="tablist" aria-label="Business functions" id="ucTabs"></div>
+      <div class="uc-panel" role="tabpanel" id="ucPanel" tabindex="0"></div>
+    </div>
+    <div class="chips" aria-label="Industries we work with"><span>Professional services</span><span>Home services and trades</span><span>Retail and e-commerce</span><span>Manufacturing and distribution</span><span>Healthcare practices</span><span>Real estate</span><span>Nonprofits</span></div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="band" id="pricing" aria-labelledby="pricing-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Engagement options</p>
+      <h2 id="pricing-h">Start small. Scale when it's working.</h2>
+    </div>
+    <div class="grid g3" style="align-items:start">
+      <article class="card tier">
+        <h3>AI Readiness Assessment</h3><p class="kicker">One-time</p>
+        <p class="price">Fixed fee</p>
+        <ul class="list"><li>Movement I, start to finish</li><li>AI Readiness Report and data-risk review</li><li>Leadership presentation</li><li>Fee credited toward a retainer if you continue</li></ul>
+        <a class="btn btn-secondary" href="#book">Book an assessment</a>
+      </article>
+      <article class="card tier featured">
+        <span class="badge">Most popular</span>
+        <h3>Fractional AI Lead</h3><p class="kicker">Monthly retainer</p>
+        <p class="price">Month to month</p>
+        <ul class="list"><li>Movements II and III</li><li>Dedicated senior advisor, set hours each month</li><li>Data guardrails, policy and training</li><li>Monthly scorecard and leadership meeting</li></ul>
+        <a class="btn btn-primary" href="#book">Talk to us</a>
+      </article>
+      <article class="card tier">
+        <h3>Orchestrator Build</h3><p class="kicker">Project-based</p>
+        <p class="price">Scoped per project</p>
+        <ul class="list"><li>Prototype-to-production rebuild</li><li>Security, data and code hardening</li><li>Hosting, documentation and handoff</li><li>Optional ongoing support plan</li></ul>
+        <a class="btn btn-secondary" href="#book">Scope a build</a>
+      </article>
+    </div>
+    <p class="price-note">No long-term contracts. Retainers are month to month after the first 90 days.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="band band-sunk" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div class="faq-wrap">
+      <div class="head">
+        <p class="eyebrow">FAQ</p>
+        <h2 id="faq-h">Questions owners ask us.</h2>
+        <p class="intro">Don't see yours? Ask it on the call.</p>
+      </div>
+      <div>
+        <details class="faq" open><summary>What is a fractional AI officer?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">A senior AI advisor who works with your business part-time. You get strategy, oversight and hands-on help without the cost of a full-time executive.</p></details>
+        <details class="faq"><summary>Will you try to sell us AI we don't need?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">No. Our job is to find where AI adds real value and to say so when it doesn't. If the right answer is a better spreadsheet or a process change, that's what we'll recommend.</p></details>
+        <details class="faq"><summary>We're small. Is this for us?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">Yes. We work best with businesses of 10 to 250 people that want to use AI but don't have anyone to lead it.</p></details>
+        <details class="faq"><summary>Will our data be used to train AI models?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">No. We only approve tools and plans that contractually exclude your data from training, and our guardrail layer keeps sensitive details from being sent in the first place.</p></details>
+        <details class="faq"><summary>Our team already uses ChatGPT. Do we have to stop?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">Usually not. We'll move you onto business accounts with the right settings, write a clear policy, and show people what's safe to share.</p></details>
+        <details class="faq"><summary>What exactly is the Orchestrator?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">Our method and platform for turning prototypes and vibe-coded apps into secure, hosted, maintainable software, connected to your data guardrails.</p></details>
+        <details class="faq"><summary>How fast will we see results?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">Most clients have a roadmap within a month and their first working project within 60&ndash;90 days.</p></details>
+        <details class="faq"><summary>What if we decide AI isn't right for us yet?<span class="pm" aria-hidden="true"></span></summary><p class="faq-body">Then the assessment has done its job. You'll know where you stand, what risks exist today, and what to watch for.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="band stage" id="book" aria-labelledby="book-h">
+  <div class="wrap">
+    <div class="cta-grid">
+      <div>
+        <p class="eyebrow">Book a call</p>
+        <h2 id="book-h" style="margin-top:8px">Ready to put someone in charge of AI?</h2>
+        <p class="intro">Book a free 30-minute readiness call. We'll look at how AI is already used in your business, where your data is exposed, and the one or two projects most likely to pay off.</p>
+        <p class="cta-note">No sales pitch. You'll leave with at least one useful idea.</p>
+      </div>
+      <form class="form" id="bookForm" novalidate>
+        <div class="row2">
+          <div class="fld"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+          <div class="fld"><label for="f-email">Work email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+        </div>
+        <div class="row2">
+          <div class="fld"><label for="f-company">Company</label><input id="f-company" name="company" autocomplete="organization" required></div>
+          <div class="fld"><label for="f-size">Company size</label><select id="f-size" name="size"><option>1&ndash;9</option><option selected>10&ndash;49</option><option>50&ndash;99</option><option>100&ndash;250</option><option>250+</option></select></div>
+        </div>
+        <fieldset class="fld">
+          <legend>What prompted you to reach out?</legend>
+          <div class="checks">
+            <label><input type="checkbox" id="f-c1" name="reason" value="team">Team already uses AI</label>
+            <label><input type="checkbox" id="f-c2" name="reason" value="prototype">Have a prototype app</label>
+            <label><input type="checkbox" id="f-c3" name="reason" value="privacy">Data privacy</label>
+            <label><input type="checkbox" id="f-c4" name="reason" value="strategy">Need an AI strategy</label>
+          </div>
+        </fieldset>
+        <p class="form-err" id="formErr" hidden></p>
+        <button class="btn btn-primary btn-lg" type="submit">Request my call</button>
+        <p class="form-msg" id="formMsg" hidden></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top"><img src="conductor-logo-inverse.svg" alt="" width="36" height="36"><span>Conductor</span></a>
+        <p class="foot-tag">Fractional AI leadership for small and mid-sized businesses.</p>
+      </div>
+      <div><h3>Services</h3><ul><li><a href="#services">Strategy</a></li><li><a href="#data">Data Guardrails</a></li><li><a href="#orchestrator">The Orchestrator</a></li><li><a href="#services">Training</a></li></ul></div>
+      <div><h3>Company</h3><ul><li><a href="#how">How It Works</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#faq">FAQ</a></li><li><a href="#book">Book a call</a></li></ul></div>
+      <div><h3>Contact</h3><ul><li>[email]</li><li>[phone]</li><li>[city, state]</li></ul></div>
+    </div>
+    <div class="foot-legal"><span>&copy; <span id="yr">2026</span> Conductor</span><span>Privacy Policy &middot; Terms</span></div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  $('yr').textContent = new Date().getFullYear();
+
+  // Nav shadow and mobile menu
+  var nav = document.querySelector('.nav');
+  var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 8); };
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  var menuBtn = $('menuBtn'), menu = $('mobileMenu');
+  menuBtn.addEventListener('click', function () {
+    var open = menu.hidden; menu.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open));
+  });
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) { menu.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); } });
+
+  // Hero guardrail demo: example records cycle through the layer
+  var records = [
+    { task: 'Task: draft a reply', count: 3,
+      raw: 'Refund request from <mark>Maria Lopez</mark>, card ending <mark>4417</mark>, phone <mark>555-0138</mark>. Order #88213 arrived damaged.',
+      safe: 'Refund request from <span class="red">CUSTOMER</span>, card ending <span class="red">####</span>, phone <span class="red">PHONE</span>. Order #88213 arrived damaged.' },
+    { task: 'Task: summarize a contract', count: 2,
+      raw: 'Summarize the renewal terms in the lease for <mark>Harbor Street Dental</mark>, signed by <mark>Dr. Alan Reyes</mark>.',
+      safe: 'Summarize the renewal terms in the lease for <span class="red">CLIENT_CO</span>, signed by <span class="red">SIGNER</span>.' },
+    { task: 'Task: categorize expenses', count: 2,
+      raw: 'Categorize March charges on account <mark>0091-772-3104</mark> for employee <mark>J. Patel</mark>.',
+      safe: 'Categorize March charges on account <span class="red">REDACTED</span> for employee <span class="red">EMPLOYEE</span>.' }
+  ];
+  var recIn = $('recIn'), recOut = $('recOut'), outWrap = $('recOutWrap'), packet = $('packet');
+  var checks = Array.prototype.slice.call($('checks').children);
+  var i = 0, timers = [];
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function show(r) {
+    recIn.innerHTML = r.raw; $('recTask').textContent = r.task; $('recCount').textContent = r.count;
+  }
+  function cycle() {
+    var r = records[i % records.length];
+    show(r);
+    recOut.innerHTML = '<span style="color:var(--on-stage-muted)">Waiting for the guardrail layer&hellip;</span>';
+    checks.forEach(function (c) { c.classList.remove('on'); });
+    packet.classList.remove('go'); void packet.offsetWidth; packet.classList.add('go');
+    checks.forEach(function (c, k) { later(function () { c.classList.add('on'); }, 1100 + k * 220); });
+    later(function () { recOut.innerHTML = r.safe; outWrap.classList.remove('scan'); void outWrap.offsetWidth; outWrap.classList.add('scan'); }, 2100);
+    later(function () { i++; cycle(); }, 6200);
+  }
+  if (reduce) { show(records[0]); recOut.innerHTML = records[0].safe; checks.forEach(function (c) { c.classList.add('on'); }); }
+  else {
+    // Start fully filled so the first frame reads complete, then begin the loop.
+    show(records[0]); recOut.innerHTML = records[0].safe; checks.forEach(function (c) { c.classList.add('on'); });
+    later(function () { i = 1; cycle(); }, 4200);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { timers.forEach(clearTimeout); timers = []; } else { timers.forEach(clearTimeout); timers = []; cycle(); }
+    });
+  }
+
+  // Data record compare tabs
+  var tabRaw = $('tabRaw'), tabSafe = $('tabSafe'), vals = document.querySelectorAll('.val');
+  function setCompare(safe) {
+    tabRaw.setAttribute('aria-selected', String(!safe)); tabSafe.setAttribute('aria-selected', String(safe));
+    vals.forEach(function (v, k) {
+      v.style.opacity = '0';
+      setTimeout(function () { v.innerHTML = safe ? v.dataset.safe : v.dataset.raw.replace(/</g, '&lt;'); v.style.opacity = '1'; }, reduce ? 0 : 120 + k * 50);
+    });
+  }
+  tabRaw.addEventListener('click', function () { setCompare(false); });
+  tabSafe.addEventListener('click', function () { setCompare(true); });
+  [tabRaw, tabSafe].forEach(function (t) { t.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { var other = t === tabRaw ? tabSafe : tabRaw; other.focus(); other.click(); } }); });
+  vals.forEach(function (v) { v.innerHTML = v.dataset.safe; });
+
+  // Orchestrator before/after switch; flips to "after" once the section is in view
+  var flips = $('flips'), swB = $('swBefore'), swA = $('swAfter'), touched = false;
+  function setFixed(on) { flips.classList.toggle('fixed', on); swA.setAttribute('aria-pressed', String(on)); swB.setAttribute('aria-pressed', String(!on)); }
+  swB.addEventListener('click', function () { touched = true; setFixed(false); });
+  swA.addEventListener('click', function () { touched = true; setFixed(true); });
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting && !touched) { setTimeout(function () { if (!touched) setFixed(true); }, 900); io.disconnect(); } });
+    }, { threshold: 0.5 });
+    io.observe(flips);
+  }
+
+  // Use-case tabs
+  var uses = [
+    { name: 'Customer service', lead: 'Answer faster without letting a bot loose on your customers.', items: [['Draft replies', 'Suggested responses your team reviews and sends.'], ['Triage inboxes', 'Sort and route requests by urgency and topic.'], ['Approved answers', 'Common questions answered from your own policies.']] },
+    { name: 'Sales', lead: 'Spend time with prospects, not on paperwork about them.', items: [['Follow-up emails', 'Timely, personal follow-ups drafted from your notes.'], ['Quotes and proposals', 'First drafts in your format, ready for review.'], ['CRM cleanup', 'Duplicates merged and missing fields filled.']] },
+    { name: 'Operations', lead: 'Take the guesswork out of the daily schedule.', items: [['Scheduling and dispatch', 'Suggested routes and crew assignments.'], ['Inventory forecasts', 'Reorder points from your sales history.'], ['SOPs', 'Written procedures from how your team already works.']] },
+    { name: 'Finance and admin', lead: 'Hand your bookkeeper cleaner books, sooner.', items: [['Invoice processing', 'Data pulled from bills into your accounting system.'], ['Expense categories', 'Charges sorted for review, not auto-posted.'], ['Month-end prep', 'Reconciliation lists ready before close.']] },
+    { name: 'Marketing', lead: 'Keep a steady voice without a full-time writer.', items: [['Content drafts', 'Posts and emails in your brand voice.'], ['Review responses', 'Thoughtful replies to every review.'], ['Campaign reporting', 'Plain-English summaries of what worked.']] },
+    { name: 'Documents', lead: 'Find what you need in the files you already have.', items: [['Contract summaries', 'Key dates, terms and obligations at a glance.'], ['Form extraction', 'Data pulled from PDFs and scanned forms.'], ['Search your files', 'Ask questions of your own documents, privately.']] }
+  ];
+  var ucTabs = $('ucTabs'), ucPanel = $('ucPanel');
+  uses.forEach(function (u, k) {
+    var b = document.createElement('button');
+    b.setAttribute('role', 'tab'); b.id = 'uc-tab-' + k; b.setAttribute('aria-controls', 'ucPanel'); b.textContent = u.name;
+    b.addEventListener('click', function () { selectUse(k, true); });
+    b.addEventListener('keydown', function (e) {
+      var n = null;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') n = (k + 1) % uses.length;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') n = (k - 1 + uses.length) % uses.length;
+      if (n !== null) { e.preventDefault(); ucTabs.children[n].focus(); selectUse(n, true); }
+    });
+    ucTabs.appendChild(b);
+  });
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function selectUse(k, anim) {
+    Array.prototype.forEach.call(ucTabs.children, function (b, j) { b.setAttribute('aria-selected', String(j === k)); b.tabIndex = j === k ? 0 : -1; });
+    var u = uses[k];
+    ucPanel.setAttribute('aria-labelledby', 'uc-tab-' + k);
+    ucPanel.innerHTML = '<h3>' + esc(u.name) + '</h3><p>' + esc(u.lead) + '</p><ul class="uc-items">' + u.items.map(function (it) { return '<li><b>' + esc(it[0]) + '</b><span>' + esc(it[1]) + '</span></li>'; }).join('') + '</ul>';
+    if (anim && !reduce) { ucPanel.classList.remove('enter'); void ucPanel.offsetWidth; ucPanel.classList.add('enter'); }
+  }
+  selectUse(0, false);
+
+  // Booking form (not connected to a backend yet)
+  var form = $('bookForm'), err = $('formErr'), msg = $('formMsg');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('f-name').value.trim(), email = $('f-email').value.trim(), co = $('f-company').value.trim();
+    if (!name || !co || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      err.textContent = 'Add your name, company and a valid work email so we can reach you.'; err.hidden = false; msg.hidden = true; return;
+    }
+    err.hidden = true;
+    msg.textContent = 'Thanks, ' + name.split(' ')[0] + '. This form isn’t connected yet, so nothing was sent. Connect it to your booking tool before launch.';
+    msg.hidden = false;
+  });
+})();
+</script>
+</html>
